@@ -6,7 +6,6 @@ package httpstat
 
 import (
 	"bufio"
-	"fmt"
 	"net"
 	"net/http"
 )
@@ -71,13 +70,17 @@ func (r *responseRecorder) Written() bool {
 }
 
 func (r *responseRecorder) CloseNotify() <-chan bool {
-	return r.ResponseWriter.(http.CloseNotifier).CloseNotify()
+	notifier, ok := r.ResponseWriter.(http.CloseNotifier)
+	if !ok {
+		panic("wrapped ResponseWriter does not support the CloseNotifier interface")
+	}
+	return notifier.CloseNotify()
 }
 
 func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := r.ResponseWriter.(http.Hijacker)
 	if !ok {
-		return nil, nil, fmt.Errorf("wrapped ResponseWriter doesn't support the Hijacker interface")
+		panic("wrapped ResponseWriter does not support the Hijacker interface")
 	}
 	return hijacker.Hijack()
 }
