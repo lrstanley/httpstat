@@ -19,9 +19,10 @@ func BenchmarkRequestBaseline(b *testing.B) {
 	s := httptest.NewServer(http.HandlerFunc(dummyHandler))
 	defer s.Close()
 
+	var err error
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := http.Get(s.URL)
+		_, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -52,9 +53,10 @@ func BenchmarkRequestStats(b *testing.B) {
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
+	var err error
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := http.Get(s.URL)
+		_, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -88,9 +90,10 @@ func BenchmarkRequestStatsWithHistory(b *testing.B) {
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
+	var err error
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := http.Get(s.URL)
+		_, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
