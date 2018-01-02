@@ -5,6 +5,9 @@
 package httpstat
 
 import (
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -12,20 +15,25 @@ import (
 	"time"
 )
 
-func dummyHandler(w http.ResponseWriter, r *http.Request) {}
+func dummyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprintln(w, "Hello Gopher! This is some example text!")
+}
 
 func BenchmarkRequestBaseline(b *testing.B) {
 	s := httptest.NewServer(http.HandlerFunc(dummyHandler))
 	defer s.Close()
 
+	var resp *http.Response
 	var err error
 	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = http.Get(s.URL)
+		resp, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
+		io.Copy(ioutil.Discard, resp.Body)
 	}
 }
 
@@ -50,14 +58,16 @@ func BenchmarkRequestStats(b *testing.B) {
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
+	var resp *http.Response
 	var err error
 	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = http.Get(s.URL)
+		resp, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
+		io.Copy(ioutil.Discard, resp.Body)
 	}
 }
 
@@ -85,14 +95,16 @@ func BenchmarkRequestStatsWithHistory(b *testing.B) {
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
+	var resp *http.Response
 	var err error
 	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		_, err = http.Get(s.URL)
+		resp, err = http.Get(s.URL)
 		if err != nil {
 			b.Fatal(err)
 		}
+		io.Copy(ioutil.Discard, resp.Body)
 	}
 }
 
