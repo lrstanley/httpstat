@@ -137,7 +137,7 @@ func (s *HTTPStats) MarshalJSON() ([]byte, error) {
 	fmt.Fprint(buf, "{\n")
 	first := true
 	expvar.Do(func(kv expvar.KeyValue) {
-		if !strings.HasPrefix(kv.Key, "httpstat_") {
+		if !strings.HasPrefix(kv.Key, "httpstat_"+s.namespace) {
 			return
 		}
 
