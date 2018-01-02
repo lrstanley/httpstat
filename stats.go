@@ -78,7 +78,6 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		histOpts = &HistoryOptions{Enabled: false}
 	}
 
-	// TODO: have this lifecycle managed by the History type?
 	if histOpts.Enabled {
 		if histOpts.MaxResolution < 10*time.Second {
 			histOpts.MaxResolution = 5 * time.Minute
@@ -94,14 +93,14 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		s.History = History{Opts: *histOpts}
 
 		// TODO: use history for averaging?
-		go s.updateHistory()
+		go s.History.watcher(s)
 	}
 
 	return s
 }
 
 // Close is required if using History, it will close the goroutine which
-// manages taking snapshots.
+// manages taking snapshots. Should only be called once.
 func (s *HTTPStats) Close() {
 	close(s.closer)
 }
@@ -115,19 +114,6 @@ func (s *HTTPStats) update(r ResponseWriter, dur time.Duration) {
 
 	if r.Status() >= 500 {
 		s.RequestErrorsTotal.Add(1)
-	}
-}
-
-func (s *HTTPStats) updateHistory() {
-	ticker := time.NewTicker(s.History.Opts.Resolution)
-
-	for {
-		select {
-		case <-s.closer:
-			return
-		case <-ticker.C:
-			s.History.add(s)
-		}
 	}
 }
 

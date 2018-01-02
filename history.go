@@ -82,6 +82,19 @@ func (h *History) add(stats *HTTPStats) {
 	h.mu.Unlock()
 }
 
+func (h *History) watcher(stat *HTTPStats) {
+	ticker := time.NewTicker(stat.History.Opts.Resolution)
+
+	for {
+		select {
+		case <-stat.closer:
+			return
+		case <-ticker.C:
+			h.add(stat)
+		}
+	}
+}
+
 func (h *History) truncate() {
 	h.mu.Lock()
 
