@@ -72,6 +72,7 @@ func (rn *renderer) latency(w http.ResponseWriter, r *http.Request) {
 
 	reqTime := []time.Time{}
 	reqLatency := []float64{}
+	var maxLatency float64
 	for i := 0; i < len(elems); i++ {
 		reqTime = append(reqTime, elems[i].Born)
 		diff := elems[i].TimeDiff / float64(elems[i].RequestsDiff)
@@ -79,6 +80,7 @@ func (rn *renderer) latency(w http.ResponseWriter, r *http.Request) {
 			diff = 0
 		}
 		reqLatency = append(reqLatency, diff)
+		maxLatency = math.Max(maxLatency, diff)
 	}
 
 	ts := chart.TimeSeries{
@@ -93,6 +95,11 @@ func (rn *renderer) latency(w http.ResponseWriter, r *http.Request) {
 
 	if spark {
 		ts.Style.FillColor = drawing.ColorTransparent
+	}
+
+	var axisRange chart.Range
+	if wantsZeroBase(r) {
+		axisRange = &chart.ContinuousRange{Min: 0, Max: maxLatency}
 	}
 
 	graph := chart.Chart{
@@ -116,6 +123,7 @@ func (rn *renderer) latency(w http.ResponseWriter, r *http.Request) {
 
 				return dur.String()
 			},
+			Range: axisRange,
 		},
 		Series: []chart.Series{ts},
 	}
@@ -134,9 +142,12 @@ func (rn *renderer) requestsPerSecond(w http.ResponseWriter, r *http.Request) {
 
 	reqTime := []time.Time{}
 	reqDiff := []float64{}
+	var maxDiff float64
 	for i := 0; i < len(elems); i++ {
+		diff := float64(elems[i].RPS)
 		reqTime = append(reqTime, elems[i].Born)
-		reqDiff = append(reqDiff, float64(elems[i].RPS))
+		reqDiff = append(reqDiff, diff)
+		maxDiff = math.Max(maxDiff, diff)
 	}
 
 	ts := chart.TimeSeries{
@@ -153,6 +164,11 @@ func (rn *renderer) requestsPerSecond(w http.ResponseWriter, r *http.Request) {
 		ts.Style.FillColor = drawing.ColorTransparent
 	}
 
+	var axisRange chart.Range
+	if wantsZeroBase(r) {
+		axisRange = &chart.ContinuousRange{Min: 0, Max: maxDiff}
+	}
+
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Name:           "time",
@@ -165,6 +181,7 @@ func (rn *renderer) requestsPerSecond(w http.ResponseWriter, r *http.Request) {
 			NameStyle:      chart.Style{Show: !spark},
 			Style:          chart.Style{Show: !spark},
 			ValueFormatter: func(v interface{}) string { return chart.FloatValueFormatterWithFormat(v, "%.0f") },
+			Range:          axisRange,
 		},
 		Series: []chart.Series{ts},
 	}
@@ -183,9 +200,12 @@ func (rn *renderer) requests(w http.ResponseWriter, r *http.Request) {
 
 	reqTime := []time.Time{}
 	reqDiff := []float64{}
+	var maxDiff float64
 	for i := 0; i < len(elems); i++ {
+		diff := float64(elems[i].RequestsDiff)
 		reqTime = append(reqTime, elems[i].Born)
-		reqDiff = append(reqDiff, float64(elems[i].RequestsDiff))
+		reqDiff = append(reqDiff, diff)
+		maxDiff = math.Max(maxDiff, diff)
 	}
 
 	ts := chart.TimeSeries{
@@ -202,6 +222,11 @@ func (rn *renderer) requests(w http.ResponseWriter, r *http.Request) {
 		ts.Style.FillColor = drawing.ColorTransparent
 	}
 
+	var axisRange chart.Range
+	if wantsZeroBase(r) {
+		axisRange = &chart.ContinuousRange{Min: 0, Max: maxDiff}
+	}
+
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Name:           "time",
@@ -214,6 +239,7 @@ func (rn *renderer) requests(w http.ResponseWriter, r *http.Request) {
 			NameStyle:      chart.Style{Show: !spark},
 			Style:          chart.Style{Show: !spark},
 			ValueFormatter: func(v interface{}) string { return chart.FloatValueFormatterWithFormat(v, "%.0f") },
+			Range:          axisRange,
 		},
 		Series: []chart.Series{ts},
 	}
@@ -271,5 +297,10 @@ func getDimensions(r *http.Request) (width, height int) {
 
 func wantsSpark(r *http.Request) bool {
 	wants, _ := strconv.ParseBool(r.FormValue("spark"))
+	return wants
+}
+
+func wantsZeroBase(r *http.Request) bool {
+	wants, _ := strconv.ParseBool(r.FormValue("fromzero"))
 	return wants
 }

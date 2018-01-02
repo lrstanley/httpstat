@@ -23,7 +23,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		[<a href="./rps.svg?w=800&h=200">svg</a>]
 		[<a href="./rps.png?w=800&h=200&spark=1">spark</a>]
 	</h5>
-	<img src="./rps.svg?w=800&h=200" id="rps_count">
+	<img src="./rps.svg?w=800&h=200&fromzero=1" id="rps_count">
 
 	<h5>
 		Request Count
@@ -31,7 +31,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		[<a href="./requests.svg?w=800&h=200">svg</a>]
 		[<a href="./requests.png?w=800&h=200&spark=1">spark</a>]
 	</h5>
-	<img src="./requests.svg?w=800&h=200" id="request_count">
+	<img src="./requests.svg?w=800&h=200&fromzero=1" id="request_count">
 
 	<h5>
 		Request Latency
@@ -39,7 +39,7 @@ const htmlTemplate = `<!DOCTYPE html>
 		[<a href="./latency.svg?w=800&h=200">svg</a>]
 		[<a href="./latency.png?w=800&h=200&spark=1">spark</a>]
 	</h5>
-	<img src="./latency.svg?w=800&h=200" id="request_latency">
+	<img src="./latency.svg?w=800&h=200&fromzero=1" id="request_latency">
 
 	<script type="text/javascript">
 		function timestamp() {
@@ -47,13 +47,13 @@ const htmlTemplate = `<!DOCTYPE html>
 		}
 		setInterval(function() {
 			var rpsCount = document.getElementById('rps_count');
-			rpsCount.src = './rps.svg?w=800&h=200&r=' + timestamp();
+			rpsCount.src = './rps.svg?w=800&h=200&fromzero=1&r=' + timestamp();
 
 			var reqCount = document.getElementById('request_count');
-			reqCount.src = './requests.svg?w=800&h=200&r=' + timestamp();
+			reqCount.src = './requests.svg?w=800&h=200&fromzero=1&r=' + timestamp();
 
 			var reqLatency = document.getElementById('request_latency');
-			reqLatency.src = './latency.svg?w=800&h=200&r=' + timestamp();
+			reqLatency.src = './latency.svg?w=800&h=200&fromzero=1&r=' + timestamp();
 		}, %d);
 	</script>
 </body>
