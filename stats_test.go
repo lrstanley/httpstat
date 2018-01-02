@@ -15,11 +15,11 @@ import (
 func dummyHandler(w http.ResponseWriter, r *http.Request) {}
 
 func BenchmarkRequestBaseline(b *testing.B) {
-	b.StopTimer()
 	s := httptest.NewServer(http.HandlerFunc(dummyHandler))
 	defer s.Close()
 
 	var err error
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		_, err = http.Get(s.URL)
@@ -30,8 +30,6 @@ func BenchmarkRequestBaseline(b *testing.B) {
 }
 
 func BenchmarkResponseBaseline(b *testing.B) {
-	b.StopTimer()
-
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(dummyHandler)
 	req, err := http.NewRequest("GET", "/", nil)
@@ -39,6 +37,7 @@ func BenchmarkResponseBaseline(b *testing.B) {
 		b.Fatal(err)
 	}
 
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		handler.ServeHTTP(rr, req)
@@ -46,14 +45,13 @@ func BenchmarkResponseBaseline(b *testing.B) {
 }
 
 func BenchmarkRequestStats(b *testing.B) {
-	b.StopTimer()
-
 	ts := time.Now().Nanosecond()
 	stats := New(strconv.Itoa(ts), nil)
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
 	var err error
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		_, err = http.Get(s.URL)
@@ -64,8 +62,6 @@ func BenchmarkRequestStats(b *testing.B) {
 }
 
 func BenchmarkResponseStats(b *testing.B) {
-	b.StopTimer()
-
 	ts := time.Now().Nanosecond()
 	stats := New(strconv.Itoa(ts), nil)
 
@@ -76,6 +72,7 @@ func BenchmarkResponseStats(b *testing.B) {
 		b.Fatal(err)
 	}
 
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		handler.ServeHTTP(rr, req)
@@ -83,14 +80,13 @@ func BenchmarkResponseStats(b *testing.B) {
 }
 
 func BenchmarkRequestStatsWithHistory(b *testing.B) {
-	b.StopTimer()
-
 	ts := time.Now().Nanosecond()
 	stats := New(strconv.Itoa(ts), &HistoryOptions{Enabled: true, Resolution: 10 * time.Second})
 	s := httptest.NewServer(stats.Record(http.HandlerFunc(dummyHandler)))
 	defer s.Close()
 
 	var err error
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		_, err = http.Get(s.URL)
@@ -101,8 +97,6 @@ func BenchmarkRequestStatsWithHistory(b *testing.B) {
 }
 
 func BenchmarkResponseStatsWithHistory(b *testing.B) {
-	b.StopTimer()
-
 	ts := time.Now().Nanosecond()
 	stats := New(strconv.Itoa(ts), &HistoryOptions{Enabled: true, Resolution: 10 * time.Second})
 
@@ -113,6 +107,7 @@ func BenchmarkResponseStatsWithHistory(b *testing.B) {
 		b.Fatal(err)
 	}
 
+	b.ResetTimer()
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		handler.ServeHTTP(rr, req)
