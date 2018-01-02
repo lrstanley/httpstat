@@ -23,8 +23,24 @@ type renderer struct {
 }
 
 // New returns a new http handler which allows viewing of httpstat data using
-// png/svg rendered graphs.
+// png/svg rendered graphs. Note that if history isn't enabled for the
+// requested HTTPStats, New will panic. History must be enabled.
+//
+// The following endpoints are registered with the return handler:
+//   /{requests,rps,latency}
+//   /{requests,rps,latency}.{svg,png}
+//
+// For example the following returns the average latency in svg form:
+//   /latency.svg
+//
+// When viewing the main registered endpoint (/), you can view all three
+// SVG versions of the graphs, which get updated automatically every
+// History.Resolution.
 func New(stats *httpstat.HTTPStats) http.Handler {
+	if !stats.History.Opts.Enabled {
+		panic("cannot create graph handler: requested HTTPStats has history disabled")
+	}
+
 	rn := &renderer{stats: stats, mux: http.NewServeMux()}
 	rn.mux.HandleFunc("/requests", rn.requests)
 	rn.mux.HandleFunc("/requests.svg", rn.requests)

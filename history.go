@@ -9,12 +9,24 @@ import (
 	"time"
 )
 
+// HistoryOptions define a set of options for how many history snapshots to
+// store, and when they should expire.
 type HistoryOptions struct {
-	Enabled       bool
+	// Enabled enables history collection. If history isn't needed, you may
+	// want to disable it to improve performance.
+	Enabled bool
+	// MaxResolution is how far back you would like to store in history. For
+	// example, a MaxResolution of 5 minutes means any datapoints older than
+	// 5 minutes, will be truncated from the snapshot list. Defaults to 5
+	// minutes.
 	MaxResolution time.Duration
-	Resolution    time.Duration
+	// Resolution is the time between each snapshot. If your resolution is
+	// 10 seconds and MaxResolution is 5 minutes, that would be (5*60)/10 (or
+	// 30) datapoints. Defaults to 5 seconds.
+	Resolution time.Duration
 }
 
+// HistoryElem is a snapshot of the http stats from a previous point of time.
 type HistoryElem struct {
 	Born          time.Time
 	TimeTotal     float64
@@ -25,12 +37,15 @@ type HistoryElem struct {
 	RPS           int64
 }
 
+// History holds the previous historical elements, and options for how long
+// and how much to store.
 type History struct {
 	Opts  HistoryOptions
 	mu    sync.RWMutex
 	elems []HistoryElem
 }
 
+// Elems returns the list previous history iterations.
 func (h *History) Elems() []HistoryElem {
 	h.mu.RLock()
 	elems := h.elems

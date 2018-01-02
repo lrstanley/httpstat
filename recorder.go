@@ -10,6 +10,8 @@ import (
 	"net/http"
 )
 
+// ResponseWriter is a custom implementation of the http.ResponseWriter
+// interface.
 type ResponseWriter interface {
 	http.ResponseWriter
 	http.Flusher
