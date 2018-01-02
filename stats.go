@@ -82,7 +82,7 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		if histOpts.MaxResolution < 10*time.Second {
 			histOpts.MaxResolution = 5 * time.Minute
 		}
-		if histOpts.Resolution < 5*time.Second {
+		if histOpts.Resolution < time.Second {
 			histOpts.Resolution = 5 * time.Second
 		}
 
