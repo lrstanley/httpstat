@@ -78,7 +78,6 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		histOpts = &HistoryOptions{Enabled: false}
 	}
 
-	// TODO: sanitize this a bit more.
 	// TODO: have this lifecycle managed by the History type?
 	if histOpts.Enabled {
 		if histOpts.MaxResolution < 10*time.Second {
@@ -86,6 +85,10 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		}
 		if histOpts.Resolution < 5*time.Second {
 			histOpts.Resolution = 5 * time.Second
+		}
+
+		if histOpts.MaxResolution < histOpts.Resolution {
+			histOpts.MaxResolution = time.Duration(histOpts.Resolution.Seconds() * 1.3)
 		}
 
 		s.History = History{Opts: *histOpts}
