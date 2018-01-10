@@ -29,6 +29,8 @@ type HTTPStats struct {
 	TimeTotal          *expvar.Float
 	RequestErrorsTotal *expvar.Int
 	RequestsTotal      *expvar.Int
+	BytesInTotal       *expvar.Int
+	BytesOutTotal      *expvar.Int
 	StatusTotal        *expvar.Map
 
 	History History
@@ -61,6 +63,8 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		TimeTotal:          expvar.NewFloat("httpstat_" + namespace + "request_total_seconds"),
 		RequestErrorsTotal: expvar.NewInt("httpstat_" + namespace + "request_error_total"),
 		RequestsTotal:      expvar.NewInt("httpstat_" + namespace + "request_total"),
+		BytesInTotal:       expvar.NewInt("httpstat_" + namespace + "request_bytes_total"),
+		BytesOutTotal:      expvar.NewInt("httpstat_" + namespace + "response_bytes_total"),
 		StatusTotal:        expvar.NewMap("httpstat_" + namespace + "status_total"),
 	}
 
@@ -105,7 +109,7 @@ func (s *HTTPStats) Close() {
 	close(s.closer)
 }
 
-func (s *HTTPStats) update(r ResponseWriter, dur time.Duration) {
+func (s *HTTPStats) update(r ResponseWriter, dur time.Duration, reqSize int) {
 	statusKey := strconv.FormatInt(int64(r.Status()), 10)
 
 	s.TimeTotal.Add(dur.Seconds())
@@ -115,6 +119,10 @@ func (s *HTTPStats) update(r ResponseWriter, dur time.Duration) {
 	if r.Status() >= 500 {
 		s.RequestErrorsTotal.Add(1)
 	}
+
+	// Sizes.
+	s.BytesInTotal.Add(int64(reqSize))
+	s.BytesOutTotal.Add(int64(r.BytesWritten()))
 }
 
 // MarshalJSON implements the json.Marshaler interface, allowing all httpstats
@@ -153,7 +161,8 @@ func (s *HTTPStats) Record(next http.Handler) http.Handler {
 		rr := NewResponseRecorder(w)
 		start := time.Now()
 		next.ServeHTTP(rr, r)
-		s.update(rr, time.Since(start))
+		reqSize := approxRequestSize(r)
+		s.update(rr, time.Since(start), reqSize)
 	})
 }
 

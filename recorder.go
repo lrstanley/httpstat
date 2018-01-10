@@ -86,3 +86,56 @@ func (r *responseRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	}
 	return hijacker.Hijack()
 }
+
+func approxRequestSize(r *http.Request) (size int) {
+	// References to " + 2" are for newlines.
+
+	// Use RequestURI rather than URI.String(), to cut down on additional
+	// processing.
+	if r.RequestURI != "" {
+		size = len(r.RequestURI)
+	} else {
+		size = len(r.URL.RequestURI())
+	}
+
+	size += len(r.Method) + 2
+	size += len(r.Proto) + 2
+	if r.Host != "" {
+		// "Host: " + "\r\n".
+		size += len(r.Host) + 6 + 2
+	}
+
+	for name, values := range r.Header {
+		size += len(name) + 2
+
+		for _, value := range values {
+			size += len(value)
+		}
+	}
+
+	if len(r.TransferEncoding) > 0 {
+		// "Transfer-Encoding: " + "\r\n".
+		size += 19 + 2
+		for _, enc := range r.TransferEncoding {
+			size += len(enc) + 1
+		}
+
+		// Subtract length for no trailing comma.
+		size--
+	}
+
+	if r.Close {
+		// "Connection: close\r\n".
+		size += 17 + 2
+
+	}
+
+	// Form and MultipartForm should be included in the serialized URL.
+	if r.ContentLength > 0 {
+		// Newline between headers and body.
+		size += 2
+		size += int(r.ContentLength)
+	}
+
+	return size
+}
