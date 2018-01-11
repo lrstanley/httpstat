@@ -61,7 +61,7 @@ func New(namespace string, histOpts *HistoryOptions) *HTTPStats {
 		InvokedUnix: expvar.NewInt("httpstat_" + namespace + "invoked_unix"),
 
 		TimeTotal:          expvar.NewFloat("httpstat_" + namespace + "request_total_seconds"),
-		RequestErrorsTotal: expvar.NewInt("httpstat_" + namespace + "request_error_total"),
+		RequestErrorsTotal: expvar.NewInt("httpstat_" + namespace + "request_errors_total"),
 		RequestsTotal:      expvar.NewInt("httpstat_" + namespace + "request_total"),
 		BytesInTotal:       expvar.NewInt("httpstat_" + namespace + "request_bytes_total"),
 		BytesOutTotal:      expvar.NewInt("httpstat_" + namespace + "response_bytes_total"),
