@@ -61,7 +61,16 @@ You can also mount the `ServeHTTP` endpoint ([here](https://godoc.org/github.com
 to a custom location, which will only return the expvar variables that were
 created by this application.
 
-Note:
+## Statgraph
+
+There is an optional subpackage you can use, which will allow you to mount a
+`net/http` handler, which can return svg/png rendered graphs of the historical
+snapshots. Below is an example of going to the mounted http handlers `/`:
+
+![](https://i.imgur.com/9d3TT0m.png)
+
+
+## Notes
 
    * Make sure you register the handler/middleware as far up the stack that
    you want to track metrics on. Also make sure that your handlers do not
@@ -87,12 +96,13 @@ and [felixge/httpsnoop](https://github.com/felixge/httpsnoop) to name a few),
 however I wanted one with builtin support for historical snapshots, as well
 as one which was built with `expvar` in mind. With support for `expvar`, this
 can allow other packages to introspect the data that this package exports, in
-a standardized way.
+a standardized way. Not all of these packages support concurrent writes to the
+ResponseWriter, which httpstat does.
 
 ## License
 
     LICENSE: The MIT License (MIT)
-    Copyright (c) 2018 Liam Stanley <me@liamstanley.io>
+    Copyright (c) 2017 Liam Stanley <me@liamstanley.io>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
