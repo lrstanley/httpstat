@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"net"
 	"net/http"
+	"sync"
 )
 
 // ResponseWriter is a custom implementation of the http.ResponseWriter
@@ -28,6 +29,7 @@ type ResponseWriter interface {
 type responseRecorder struct {
 	http.ResponseWriter
 
+	mu           sync.RWMutex
 	status       int
 	bytesWritten int
 }
@@ -38,7 +40,10 @@ func NewResponseRecorder(w http.ResponseWriter) ResponseWriter {
 }
 
 func (r *responseRecorder) WriteHeader(code int) {
+	r.mu.Lock()
 	r.status = code
+	r.mu.Unlock()
+
 	r.ResponseWriter.WriteHeader(code)
 }
 
@@ -48,8 +53,12 @@ func (r *responseRecorder) Flush() {
 	}
 }
 
-func (r *responseRecorder) Status() int {
-	return r.status
+func (r *responseRecorder) Status() (status int) {
+	r.mu.RLock()
+	status = r.status
+	r.mu.RUnlock()
+
+	return status
 }
 
 func (r *responseRecorder) Write(b []byte) (int, error) {
@@ -59,16 +68,27 @@ func (r *responseRecorder) Write(b []byte) (int, error) {
 	}
 
 	bytesWritten, err := r.ResponseWriter.Write(b)
+	r.mu.Lock()
 	r.bytesWritten += bytesWritten
+	r.mu.Unlock()
+
 	return bytesWritten, err
 }
 
-func (r *responseRecorder) BytesWritten() int {
-	return r.bytesWritten
+func (r *responseRecorder) BytesWritten() (written int) {
+	r.mu.RLock()
+	written = r.bytesWritten
+	r.mu.RUnlock()
+
+	return written
 }
 
-func (r *responseRecorder) Written() bool {
-	return r.status != 0
+func (r *responseRecorder) Written() (written bool) {
+	r.mu.RLock()
+	written = r.status != 0
+	r.mu.RUnlock()
+
+	return written
 }
 
 func (r *responseRecorder) CloseNotify() <-chan bool {
